@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-white text-gray-900;
+  }
+}
+
+/* markdownの画像スタイル調整 */
+.markdown-body img {
+  @apply rounded-xl shadow-sm outline outline-1 outline-gray-200 object-contain mx-auto;
+  max-width: 100%;
+  height: auto;
+}
