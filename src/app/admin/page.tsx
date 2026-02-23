@@ -20,7 +20,10 @@ export default async function AdminDashboard() {
     // DB Schema is updated so RLS *might* handle this, but it's safe to filter explicitly
     const { data: posts } = await supabase
         .from('posts')
-        .select('id, title, is_published, created_at, likes_count')
+        .select(`
+            *,
+            tags ( tags ( name ) )
+        `)
         .eq('author_id', user.id)
         .order('created_at', { ascending: false })
 

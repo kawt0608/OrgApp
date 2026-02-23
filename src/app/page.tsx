@@ -17,7 +17,8 @@ export default async function Home() {
             created_at, 
             likes_count,
             image_url,
-            profiles ( display_name )
+            profiles ( display_name ),
+            tags:post_tags ( tags ( name ) )
         `)
         .eq('is_published', true)
         .order('created_at', { ascending: false })
@@ -75,6 +76,15 @@ export default async function Home() {
                                             {post.title}
                                         </Link>
                                     </h3>
+                                    {post.tags && post.tags.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mt-3 relative z-10">
+                                            {post.tags.map((t: any) => (
+                                                <span key={t.tags.name} className="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
+                                                    {t.tags.name}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </article>
                         ))}
@@ -84,7 +94,7 @@ export default async function Home() {
                         <p>記事がありません。</p>
                     </div>
                 )}
-            </main>
-        </div>
+            </main >
+        </div >
     )
 }

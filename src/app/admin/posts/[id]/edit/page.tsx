@@ -16,7 +16,10 @@ export default async function EditPost(props: PageProps) {
 
     const { data: post } = await supabase
         .from('posts')
-        .select('*')
+        .select(`
+            *,
+            tags:post_tags ( tags ( name ) )
+        `)
         .eq('id', params.id)
         .single()
 

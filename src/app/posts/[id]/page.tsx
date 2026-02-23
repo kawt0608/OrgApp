@@ -21,7 +21,8 @@ export default async function PostDetail(props: PageProps) {
         .from('posts')
         .select(`
             *,
-            profiles ( display_name )
+            profiles ( display_name ),
+            tags:post_tags ( tags ( name ) )
         `)
         .eq('id', params.id)
         .single()
@@ -58,6 +59,16 @@ export default async function PostDetail(props: PageProps) {
                             <span>{(post.profiles as any)?.display_name || 'Unknown'}</span>
                         </div>
                     </div>
+
+                    {post.tags && post.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-8 not-prose">
+                            {post.tags.map((t: any) => (
+                                <span key={t.tags.name} className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-800">
+                                    {t.tags.name}
+                                </span>
+                            ))}
+                        </div>
+                    )}
 
                     {post.image_url && (
                         <div className="mb-8 w-full overflow-hidden rounded-2xl bg-gray-100 shadow-sm">

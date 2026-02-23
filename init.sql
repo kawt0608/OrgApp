@@ -98,12 +98,59 @@ CREATE POLICY "Anyone can view likes"
   USING ( true );
 
 
--- ==========================================
--- Storage (画像保存用バケット) の設定
--- ==========================================
+  -- ==========================================
+  -- tags テーブル
+  -- 記事に付与するタグのマスタデータ
+  -- ==========================================
+  CREATE TABLE tags (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name text UNIQUE NOT NULL,
+    created_at timestamp with time zone DEFAULT now()
+  );
+
+  ALTER TABLE tags ENABLE ROW LEVEL SECURITY;
+
+  -- 誰でもタグ一覧を取得できる
+  CREATE POLICY "Public tags are viewable by everyone"
+    ON tags FOR SELECT
+    USING ( true );
+
+  -- 認証済みユーザーは新しいタグを作成できる
+  CREATE POLICY "Authenticated users can create tags"
+    ON tags FOR INSERT
+    WITH CHECK ( auth.role() = 'authenticated' );
+
+  -- ==========================================
+  -- post_tags テーブル (中間テーブル)
+  -- posts と tags を多対多で紐付ける
+  -- ==========================================
+  CREATE TABLE post_tags (
+    post_id uuid REFERENCES posts(id) ON DELETE CASCADE,
+    tag_id uuid REFERENCES tags(id) ON DELETE CASCADE,
+    created_at timestamp with time zone DEFAULT now(),
+    PRIMARY KEY (post_id, tag_id)
+  );
+
+  ALTER TABLE post_tags ENABLE ROW LEVEL SECURITY;
+
+  -- 誰でも記事とタグの紐付けを取得できる
+  CREATE POLICY "Public post_tags are viewable by everyone"
+    ON post_tags FOR SELECT
+    USING ( true );
+
+  -- 認証済みユーザーは自分の記事に対してのみタグを紐付けられる
+  -- (INSERT/DELETEのチェックは少し複雑になるため、簡易的に認証済みなら許可とし、
+  --  アプリケーション側（Server Action）で author_id を確認する運用とします)
+  CREATE POLICY "Authenticated users can manage post_tags"
+    ON post_tags FOR ALL
+    USING ( auth.role() = 'authenticated' );
+
+  -- ==========================================
+  -- Supabase Storage (画像アップロード用バケット作成)
+  -- ==========================================
 -- ※Storage機能（storage.objects等）のテーブルはSupabase側で自動用意される前提です
 -- post-images バケットの作成
-INSERT INTO storage.buckets (id, name, public) 
+INSERT INTO storage.buckets (id, name, public)
 VALUES ('post-images', 'post-images', true)
 ON CONFLICT (id) DO NOTHING;
 

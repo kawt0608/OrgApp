@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import Link from 'next/link'
 import ImageUpload from '@/components/ImageUpload'
 import MarkdownEditor from '@/components/MarkdownEditor'
@@ -13,11 +13,16 @@ interface PostFormProps {
         content: string
         image_url: string | null
         is_published: boolean
+        tags?: { tags: { name: string } }[] // Supabase join shape
     }
 }
 
 export default function PostForm({ post }: PostFormProps) {
     const [state, formAction, isPending] = useActionState(savePost, null)
+
+    // Extract initial tags from post relation if editing
+    const initialTags = post?.tags?.map((t) => t.tags.name).join(', ') || ''
+    const [tagsInput, setTagsInput] = useState(initialTags)
 
     return (
         <form action={formAction} className="space-y-6">
@@ -64,6 +69,24 @@ export default function PostForm({ post }: PostFormProps) {
                     Cover Image
                 </label>
                 <ImageUpload initialValue={post?.image_url || null} />
+            </div>
+
+            <div>
+                <label htmlFor="tags" className="block text-sm font-medium leading-6 text-gray-900">
+                    Tags (comma separated)
+                </label>
+                <div className="mt-2 text-sm text-gray-500 mb-2">
+                    複数のタグを付ける場合はコンマ（,）で区切ってください。 例: Next.js, React, Supabase
+                </div>
+                <input
+                    type="text"
+                    name="tags"
+                    id="tags"
+                    value={tagsInput}
+                    onChange={(e) => setTagsInput(e.target.value)}
+                    placeholder="e.g. Next.js, React, Supabase"
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-amber-600 sm:text-sm sm:leading-6 px-3"
+                />
             </div>
 
             <div className="flex items-center">
