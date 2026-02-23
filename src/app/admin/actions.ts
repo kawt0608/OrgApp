@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import * as fs from 'fs'
 
 export async function togglePublish(postId: string, currentStatus: boolean, formData: FormData) {
     const supabase = await createClient()
@@ -54,18 +55,16 @@ export async function deletePost(postId: string, formData: FormData) {
     revalidatePath('/')
 }
 
-export async function savePost(formData: FormData) {
+export async function savePost(prevState: any, formData: FormData) {
     const id = formData.get('id') as string | null
     const title = formData.get('title') as string
     const content = formData.get('content') as string
     const image_url = formData.get('image_url') as string | null
     const is_published = formData.get('is_published') === 'true'
-
-    console.log('Raw FormData:', Object.fromEntries(formData.entries()))
+    console.log('Raw FormData keys:', Array.from(formData.keys()))
 
     if (!title || !content) {
-        console.error('Validation failed: Missing title or content')
-        throw new Error('Title and Content are required')
+        return { error: 'タイトル(Title)と本文(Content)の入力が必要です。' }
     }
 
     const supabase = await createClient()
@@ -87,7 +86,7 @@ export async function savePost(formData: FormData) {
 
         if (error) {
             console.error('Failed to update post:', error)
-            throw new Error(`Failed to update post: ${error.message}`)
+            return { error: `記事の更新に失敗しました: ${error.message}` }
         }
     } else {
         // Create new
@@ -97,7 +96,7 @@ export async function savePost(formData: FormData) {
 
         if (error) {
             console.error('Failed to create post:', error)
-            throw new Error(`Failed to create post: ${error.message}`)
+            return { error: `記事の作成に失敗しました: ${error.message}` }
         }
     }
 
